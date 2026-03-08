@@ -1,6 +1,6 @@
 ## Project Overview
 
-Browser-based voxel editor.
+Browser-based voxel editor. [Click for Demo Here](https://voxelized.vercel.app/)
 
 **Core loop:**
 
@@ -9,6 +9,9 @@ Browser-based voxel editor.
 - Face-aware placement on existing voxels
 
 **Extend Features:** AI generate voxelized building structure or dynamically search in existing 3d building datasets with given text description.
+
+**Showcase:** AI building a 'Narrow 3-story townhouse with a stoop and brownstone facade'
+<img width="1610" height="1083" alt="image" src="https://github.com/user-attachments/assets/5d111348-8d8b-452b-b33e-67b90dc47741" />
 
 ---
 
