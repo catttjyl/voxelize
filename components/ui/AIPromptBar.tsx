@@ -2,15 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { useStore } from '@/store';
-import { Material, posKey, VoxelData } from '@/lib/voxel/types';
-
-interface GeneratedVoxel {
-  x: number;
-  y: number;
-  z: number;
-  color: string;
-  material: Material;
-}
+import { GeneratedVoxel } from '@/lib/voxel/types';
+import { MATERIAL_COLORS_GENERATED } from '@/constants/materials';
+import { useArchitectPrimitives } from '@/hooks/useArchitectPrimitives';
 
 export default function AIPromptBar() {
   const [prompt, setPrompt] = useState('');
@@ -19,11 +13,7 @@ export default function AIPromptBar() {
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // const voxels = useStore((s) => s.voxels);
-  // const activeLayerId = useStore((s) => s.activeLayerId);
-  // const placeVoxel = useStore((s) => s.placeVoxel);
-  // const pushOps = useStore((s) => s.pushOps);
-  const setVoxels = useStore((s) => s.setVoxels);
+  const { fillBox, fillFloor, fillWall, addWindow, addDoor, addColumn, gableRoof, hipRoof, flatRoof } = useArchitectPrimitives();
   const clearAll = useStore((s) => s.clearAll);
 
   async function handleGenerate() {
@@ -61,14 +51,81 @@ export default function AIPromptBar() {
       
       // clear current voxels and put new voxels
       clearAll();
-      const voxelMap = new Map();
+      // const voxelMap = new Map();
+      const activeLayerId = 'layer-0';
 
       // Apply all voxels
-      for (const v of generated) {
-        const voxelData: VoxelData = { color: v.color, material: v.material };
-        voxelMap.set(posKey(v.x, v.y, v.z), voxelData);
+      for (const each of generated) {
+        const { x, y, z } = each;
+        switch (each.type) {
+          case "box": {
+            const width = each.width ?? 1;
+            const length = each.length ?? 1;
+            const height = each.height ?? 1;
+            const color = MATERIAL_COLORS_GENERATED[each.material as keyof typeof MATERIAL_COLORS_GENERATED] ?? MATERIAL_COLORS_GENERATED.concrete;
+            fillBox(activeLayerId, x, y, z, x + width, y + height, z + length, color);
+            break;
+          }
+          case "floor": {
+            const width = each.width ?? 1;
+            const length = each.length ?? 1;
+            const color = MATERIAL_COLORS_GENERATED[each.material as keyof typeof MATERIAL_COLORS_GENERATED] ?? MATERIAL_COLORS_GENERATED.foundation;
+            fillFloor(activeLayerId, x, y, z, x + width, z + length, color);
+            break;
+          }
+          case "walls": {
+            const width = each.width ?? 1;
+            const length = each.length ?? 1;
+            const height = each.height ?? 1;
+            const color = MATERIAL_COLORS_GENERATED[each.material as keyof typeof MATERIAL_COLORS_GENERATED] ?? MATERIAL_COLORS_GENERATED.clapboard;
+            fillWall(activeLayerId, x, y, z, x + width, y + height, z + length, color);
+            break;
+          }
+          case "window": {
+            const width = each.width ?? 1;
+            const height = each.height ?? 1;
+            const axis = each.face === "front" || each.face === "back" ? "x" : "z";
+            addWindow(activeLayerId, x, y, z, axis, width, height, MATERIAL_COLORS_GENERATED.glass);
+            break;
+          }
+          case "door": {
+            const width = each.width ?? 1;
+            const height = each.height ?? 1;
+            const axis = each.face === "front" || each.face === "back" ? "x" : "z";
+            const color = MATERIAL_COLORS_GENERATED[each.material as keyof typeof MATERIAL_COLORS_GENERATED] ?? MATERIAL_COLORS_GENERATED.door_wood;
+            addDoor(activeLayerId, x, y, z, axis, width, height, color);
+            break;
+          }
+          case "column": {
+            const height = each.height ?? 1;
+            const color = MATERIAL_COLORS_GENERATED[each.material as keyof typeof MATERIAL_COLORS_GENERATED] ?? MATERIAL_COLORS_GENERATED.column;
+            addColumn(activeLayerId, x, y, z, y + height, color);
+            break;
+          }
+          case "gableRoof": {
+            const width = each.width ?? 1;
+            const length = each.length ?? 1;
+            const color = MATERIAL_COLORS_GENERATED[each.material as keyof typeof MATERIAL_COLORS_GENERATED] ?? MATERIAL_COLORS_GENERATED.roof_shingle;
+            gableRoof(activeLayerId, x, z, x + width, z + length, y, color);
+            break;
+          }
+          case "hipRoof": {
+            const width = each.width ?? 1;
+            const length = each.length ?? 1;
+            const color = MATERIAL_COLORS_GENERATED[each.material as keyof typeof MATERIAL_COLORS_GENERATED] ?? MATERIAL_COLORS_GENERATED.roof_shingle;
+            hipRoof(activeLayerId, x, z, x + width, z + length, y, color);
+            break;
+          }
+          case "flatRoof": {
+            const width = each.width ?? 1;
+            const length = each.length ?? 1;
+            const color = MATERIAL_COLORS_GENERATED[each.material as keyof typeof MATERIAL_COLORS_GENERATED] ?? MATERIAL_COLORS_GENERATED.concrete;
+            flatRoof(activeLayerId, x, y, z, x + width, z + length, color);  
+            break;
+          }
+        }
       }
-      setVoxels(new Map([['layer-0', voxelMap]]));
+      // setVoxels(new Map([['layer-0', voxelMap]]));
 
       setPrompt('');
       setStatus('idle');

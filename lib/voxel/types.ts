@@ -19,7 +19,21 @@ export enum Material {
 
 export interface VoxelData {
   color: string;
-  material: Material;
+  material?: Material;
+}
+
+type Face = "front" | "back" | "left" | "right";
+
+export interface GeneratedVoxel {
+  type: string;
+  x: number;
+  y: number;
+  z: number;
+  width?: number;
+  length?: number;
+  height?: number; 
+  material?: string;
+  face?: Face;
 }
 
 /** Inner map: "x,y,z" → VoxelData */
